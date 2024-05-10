@@ -13,6 +13,7 @@ const slash = {
     async run(client, interaction) {
         try {
             await interaction.reply({ content: "Bot se restartuje", ephemeral: true });
+            process.exit();
         } catch (error) {
             console.error('Error handling restart command:', error);
         }
