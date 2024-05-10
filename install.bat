@@ -1,0 +1,1 @@
+start npm install discord.js@14 fs path moment isomorphic-fetch
