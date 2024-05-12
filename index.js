@@ -102,3 +102,139 @@ process.on("uncaughtExceptionMonitor", (e) => {
     client.log(e);
 });
 client.login(token);
+
+
+async function createTicket(guild, username, userId, roleId, category, reason, interaction) {
+    const ticketName = `ticket-${username}`;
+    const pingROLE = "1239210114343501834";
+    const invisibleText = `** **||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ _ <@${userId}>`
+    client.log("Ticket Name:", ticketName);
+    const newTicket = await guild.channels.create({
+        name: ticketName,
+        type: ChannelType.GuildText,
+        permissionOverwrites: [
+            {
+                id: guild.roles.everyone,
+                deny: [
+                    PermissionsBitField.Flags.ViewChannel
+                ]
+            },
+            {
+                id: userId,
+                allow: [
+                    PermissionsBitField.Flags.SendMessages,
+                    PermissionsBitField.Flags.ViewChannel
+                ]
+            },
+            {
+                id: roleId,
+                allow: [
+                    PermissionsBitField.Flags.SendMessages,
+                    PermissionsBitField.Flags.ViewChannel
+                ]
+            }
+        ],
+        parent: category,
+    });
+
+    if (reason === "partnership") {
+        let welcomeMessage = new EmbedBuilder()
+            .setAuthor({ name: `${username}\`s ticket`, iconURL: `https://cdn.discordapp.com/icons/1167817381788262490/b1307c7333951e9a80b7631479e1efe5.png` })
+            .setDescription(`
+<@${userId}>, someone from <@&${pingROLE}> will assist you shortly.
+
+But before you write anything, please invite our bot with full permissions to confirm that you meet the conditions!
+              `)
+            .addFields(
+                {
+                    name: "Reason:",
+                    value: `> ${reason}`
+                }
+            )
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('close_ticket')
+                    .setLabel('Close')
+                    .setStyle(ButtonStyle.Danger)
+            );
+        await newTicket.send({
+            content: invisibleText,
+            embeds: [welcomeMessage],
+            components: [row]
+        });
+    } else {
+        let welcomeMessage = new EmbedBuilder()
+            .setAuthor({ name: `${username}\`s ticket`, iconURL: `https://cdn.discordapp.com/icons/1167817381788262490/b1307c7333951e9a80b7631479e1efe5.png` })
+            .setDescription(`<@${userId}>, someone from <@&${pingROLE}> will assist you shortly.`)
+            .addFields(
+                {
+                    name: "Reason:",
+                    value: `> ${reason}`
+                }
+            )
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('close_ticket')
+                    .setLabel('Close')
+                    .setStyle(ButtonStyle.Danger)
+            );
+        await newTicket.send({
+            content: invisibleText,
+            embeds: [welcomeMessage],
+            components: [row]
+        });
+    }
+    const redir = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setLabel('Go to ticket')
+                .setURL(`https://discord.com/channels/${guild.id}/${newTicket.id}`)
+                .setStyle(ButtonStyle.Link)
+        );
+    await interaction.reply({
+        content: `We have created a ticket on the \`${reason}\` topic. You will be contacted soon.`,
+        ephemeral: true,
+        components: [redir]
+    });
+
+    return newTicket;
+}
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+    const guild = interaction.guild;
+    const categoryId = '1207691510460583986';
+    const roleID = "1207801075156127794";
+    if (interaction.customId === 'partnership') {
+        const newTicket = await createTicket(
+            guild,
+            interaction.user.username,
+            interaction.user.id,
+            roleID,
+            categoryId,
+            "partnership",
+            interaction
+        );
+    } else if (interaction.customId === 'whitelist') {
+        const newTicket = await createTicket(
+            guild,
+            interaction.user.username,
+            interaction.user.id,
+            roleID,
+            categoryId,
+            "whitelist",
+            interaction
+        );
+    } else if (interaction.customId === 'support') {
+        const newTicket = await createTicket(
+            guild,
+            interaction.user.username,
+            interaction.user.id,
+            roleID,
+            categoryId,
+            "support",
+            interaction
+        );
+    }
+});
